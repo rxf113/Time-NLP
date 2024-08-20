@@ -1,8 +1,8 @@
 /**
  * Copyright (c) 2016 21CN.COM . All rights reserved.<br>
- *
+ * <p>
  * Description: calendar<br>
- *
+ * <p>
  * Modified log:<br>
  * ------------------------------------------------------<br>
  * Ver.		Date		Author			Description<br>
@@ -15,6 +15,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -148,6 +152,9 @@ public class DateUtil extends CommonDateUtil {
         return c.getTime();
     }
 
+    public static final DateTimeFormatter ISO_8601_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+    public static final DateTimeFormatter ISO_8601_FORMATTER_START = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'00:00:00");
+
     /**
      * 默认时间格式化
      *
@@ -156,7 +163,60 @@ public class DateUtil extends CommonDateUtil {
      * @return
      */
     public static String formatDateDefault(Date date) {
-        return DateUtil.formatDate(date, "yyyy-MM-dd HH:mm:ss");
+//        return DateUtil.formatDate(date, "yyyy-MM-dd HH:mm:ss");
+        Instant instant = date.toInstant();
+        LocalDateTime localDateTime = instant.atZone(ZoneId.systemDefault()).toLocalDateTime();
+        return localDateTime.format(ISO_8601_FORMATTER);
+    }
+
+
+    private static final DateTimeFormatter DATE_ONLY_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    public static String formatDateChoose(Date date) {
+        Instant instant = date.toInstant();
+        LocalDateTime localDateTime = instant.atZone(ZoneId.systemDefault()).toLocalDateTime();
+
+        if (localDateTime.getHour() == 0 && localDateTime.getMinute() == 0 && localDateTime.getSecond() == 0) {
+            return localDateTime.toLocalDate().format(DATE_ONLY_FORMATTER);
+        } else {
+            return localDateTime.format(ISO_8601_FORMATTER);
+        }
+    }
+
+    public static String formatLocalDateChoose(LocalDateTime localDateTime) {
+        if (localDateTime.getHour() == 0 && localDateTime.getMinute() == 0 && localDateTime.getSecond() == 0) {
+            return localDateTime.toLocalDate().format(DATE_ONLY_FORMATTER);
+        } else {
+            return localDateTime.format(ISO_8601_FORMATTER);
+        }
+    }
+
+
+    /**
+     * 默认时间格式化
+     *
+     * @param date
+     * @param format
+     * @return
+     */
+    public static String formatDateStartDefault(Date date) {
+//        return DateUtil.formatDate(date, "yyyy-MM-dd HH:mm:ss");
+        Instant instant = date.toInstant();
+        LocalDateTime localDateTime = instant.atZone(ZoneId.systemDefault()).toLocalDateTime();
+        return localDateTime.format(ISO_8601_FORMATTER_START);
+    }
+
+    /**
+     * 默认时间格式化
+     *
+     * @param date
+     * @return
+     */
+    public static String formatDateEndDefault(Date date) {
+//        return DateUtil.formatDate(date, "yyyy-MM-dd HH:mm:ss");
+        Instant instant = date.toInstant();
+        LocalDateTime localDateTime = instant.atZone(ZoneId.systemDefault()).toLocalDateTime();
+        return localDateTime.plusDays(1).format(ISO_8601_FORMATTER_START);
     }
 
     /**

@@ -30,6 +30,13 @@ import com.time.nlp.TimeNormalizer;
  * 
  */
 public class TimeAnalyseTest {
+
+	public static void main(String[] args) {
+		URL url = TimeAnalyseTest.class.getResource("/TimeExp.m");
+		System.out.println(url.toURI().toString());
+		TimeNormalizer normalizer = new TimeNormalizer(url.toURI().toString());
+		normalizer.setPreferFuture(true);
+	}
 	
     @Test
     public void testTimeNLP() throws URISyntaxException {

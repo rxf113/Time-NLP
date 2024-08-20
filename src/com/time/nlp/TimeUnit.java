@@ -19,8 +19,8 @@ import com.time.enums.RangeTimeEnum;
  * @since 2016年5月4日
  */
 public class TimeUnit {
-	//有需要可使用
-	//private static final Logger LOGGER = LoggerFactory.getLogger(TimeUnit.class);
+    //有需要可使用
+    //private static final Logger LOGGER = LoggerFactory.getLogger(TimeUnit.class);
     /**
      * 目标字符串
      */
@@ -179,19 +179,19 @@ public class TimeUnit {
         if (match.find()) {
             _tp.tunit[3] = Integer.parseInt(match.group());
             /**处理倾向于未来时间的情况  @author kexm*/
-            preferFuture(3);
+//            preferFuture(3);
             isAllDayTime = false;
         }
         /*
          * 对关键字：早（包含早上/早晨/早间），上午，中午,午间,下午,午后,晚上,傍晚,晚间,晚,pm,PM的正确时间计算
-		 * 规约：
-		 * 1.中午/午间0-10点视为12-22点
-		 * 2.下午/午后0-11点视为12-23点
-		 * 3.晚上/傍晚/晚间/晚1-11点视为13-23点，12点视为0点
-		 * 4.0-11点pm/PM视为12-23点
-		 * 
-		 * add by kexm
-		 */
+         * 规约：
+         * 1.中午/午间0-10点视为12-22点
+         * 2.下午/午后0-11点视为12-23点
+         * 3.晚上/傍晚/晚间/晚1-11点视为13-23点，12点视为0点
+         * 4.0-11点pm/PM视为12-23点
+         *
+         * add by kexm
+         */
         rule = "凌晨";
         pattern = Pattern.compile(rule);
         match = pattern.matcher(Time_Expression);
@@ -242,12 +242,17 @@ public class TimeUnit {
         pattern = Pattern.compile(rule);
         match = pattern.matcher(Time_Expression);
         if (match.find()) {
+            if (_tp.tunit[3] == -1 || _tp.tunit[4] == -1) {
+                norm_setTotal();
+            }
+
+
             if (_tp.tunit[3] >= 0 && _tp.tunit[3] <= 11)
                 _tp.tunit[3] += 12;
             if (_tp.tunit[3] == -1) /**增加对没有明确时间点，只写了“下午|午后”这种情况的处理  @author kexm*/
                 _tp.tunit[3] = RangeTimeEnum.afternoon.getHourTime();
             /**处理倾向于未来时间的情况  @author kexm*/
-            preferFuture(3);
+//            preferFuture(3);
             isAllDayTime = false;
         }
 
@@ -255,6 +260,10 @@ public class TimeUnit {
         pattern = Pattern.compile(rule);
         match = pattern.matcher(Time_Expression);
         if (match.find()) {
+            if (_tp.tunit[3] == -1 || _tp.tunit[4] == -1) {
+                norm_setTotal();
+            }
+
             if (_tp.tunit[3] >= 1 && _tp.tunit[3] <= 11)
                 _tp.tunit[3] += 12;
             else if (_tp.tunit[3] == 12)
@@ -263,7 +272,7 @@ public class TimeUnit {
                 _tp.tunit[3] = RangeTimeEnum.night.getHourTime();
 
             /**处理倾向于未来时间的情况  @author kexm*/
-            preferFuture(3);
+//            preferFuture(3);
             isAllDayTime = false;
         }
 
@@ -317,6 +326,7 @@ public class TimeUnit {
             preferFuture(4);
             isAllDayTime = false;
         }
+        preferFutureHourMinute();
     }
 
     /**
@@ -325,11 +335,11 @@ public class TimeUnit {
      * 该方法识别时间表达式单元的秒字段
      */
     public void norm_setsecond() {
-		/*
-		 * 添加了省略“分”说法的时间
-		 * 如17点15分32
-		 * modified by 曹零
-		 */
+        /*
+         * 添加了省略“分”说法的时间
+         * 如17点15分32
+         * modified by 曹零
+         */
         String rule = "([0-5]?[0-9](?=秒))|((?<=分)[0-5]?[0-9])";
 
         Pattern pattern = Pattern.compile(rule);
@@ -380,11 +390,11 @@ public class TimeUnit {
                 isAllDayTime = false;
             }
         }
-		/*
-		 * 增加了:固定形式时间表达式的
-		 * 中午,午间,下午,午后,晚上,傍晚,晚间,晚,pm,PM
-		 * 的正确时间计算，规约同上
-		 */
+        /*
+         * 增加了:固定形式时间表达式的
+         * 中午,午间,下午,午后,晚上,傍晚,晚间,晚,pm,PM
+         * 的正确时间计算，规约同上
+         */
         rule = "(中午)|(午间)";
         pattern = Pattern.compile(rule);
         match = pattern.matcher(Time_Expression);
@@ -451,11 +461,11 @@ public class TimeUnit {
             _tp.tunit[2] = Integer.parseInt(tmp_parser[1]);
             _tp.tunit[0] = Integer.parseInt(tmp_parser[2]);
         }
-		
-		/*
-		 * 增加了:固定形式时间表达式 年.月.日 的正确识别
-		 * add by 曹零
-		 */
+
+        /*
+         * 增加了:固定形式时间表达式 年.月.日 的正确识别
+         * add by 曹零
+         */
         rule = "[0-9]?[0-9]?[0-9]{2}\\.((10)|(11)|(12)|([1-9]))\\.((?<!\\d))([0-3][0-9]|[1-9])";
         pattern = Pattern.compile(rule);
         match = pattern.matcher(Time_Expression);
@@ -947,8 +957,12 @@ public class TimeUnit {
             return;
         }
         //准备增加的时间单位是被检查的时间的上一级，将上一级时间+1
-        int addTimeUnit = TUNIT_MAP.get(checkTimeIndex - 1);
-        c.add(addTimeUnit, 1);
+        if (checkTimeIndex != 3) {
+            //20240808: 小时不加 累计到分钟去加
+            int addTimeUnit = TUNIT_MAP.get(checkTimeIndex - 1);
+            c.add(addTimeUnit, 1);
+        }
+
 
 //		_tp.tunit[checkTimeIndex - 1] = c.get(TUNIT_MAP.get(checkTimeIndex - 1));
         for (int i = 0; i < checkTimeIndex; i++) {
@@ -958,6 +972,63 @@ public class TimeUnit {
             }
         }
 
+    }
+
+    private void preferFutureHourMinute() {
+        int paramHour = _tp.tunit[3];
+        int paramMin = _tp.tunit[4];
+        Calendar cu = Calendar.getInstance();
+
+        if (paramHour == -1 && paramMin == -1) {
+            return;
+        }
+        //判断年月日是否相等
+        boolean preEq = true;
+        for (int i = 0; i < 3; i++) {
+            int unitValue = cu.get(TUNIT_MAP.get(i));
+            // 如果是月份，则进行 +1 调整
+            if (i == 1) {
+                unitValue += 1;
+            }
+            if (_tp.tunit[i] != -1 && _tp.tunit[i] != unitValue) {
+                preEq = false;
+                break;
+            }
+        }
+        if (!preEq) {
+            return;
+        }
+        //当年月日相同的时候，如果当前实际 时分 大于参数时分 加一天
+        if (this.normalizer.getTimeBase() != null) {
+            String[] ini = this.normalizer.getTimeBase().split("-");
+            cu.set(Integer.valueOf(ini[0]).intValue(), Integer.valueOf(ini[1]).intValue() - 1, Integer.valueOf(ini[2]).intValue()
+                    , Integer.valueOf(ini[3]).intValue(), Integer.valueOf(ini[4]).intValue(), Integer.valueOf(ini[5]).intValue());
+//            LOGGER.debug(DateUtil.formatDateDefault(c.getTime()));
+        }
+
+
+        int currentHour = cu.get(Calendar.HOUR_OF_DAY);
+        int currentMinute = cu.get(Calendar.MINUTE);
+
+        if (cuHourGtParamHour(currentHour, paramHour, currentMinute, paramMin)) {
+            // 如果当前时间大于参数时间，则加一天
+            cu.add(Calendar.DAY_OF_MONTH, 1);
+
+            for (int i = 0; i < 3; i++) {
+                _tp.tunit[i] = cu.get(TUNIT_MAP.get(i));
+                if (TUNIT_MAP.get(i) == Calendar.MONTH) {
+                    ++_tp.tunit[i];
+                }
+            }
+        }
+
+    }
+
+    private boolean cuHourGtParamHour(int cuHour, int pHour, int cuMin, int pMin) {
+        if (pMin == -1) {
+            return cuHour >= pHour;
+        }
+        return (cuHour > pHour || (cuHour == pHour && cuMin >= pMin));
     }
 
     /**

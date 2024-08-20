@@ -43,18 +43,22 @@ public class TimeNormalizer implements Serializable {
 
     private boolean isPreferFuture = true;
 
-    public TimeNormalizer() {
-        if (patterns == null) {
-            try {
-                InputStream in = getClass().getResourceAsStream("/TimeExp.m");
-                ObjectInputStream objectInputStream = new ObjectInputStream(
-                        new BufferedInputStream(new GZIPInputStream(in)));
-                patterns = readModel(objectInputStream);
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.err.print("Read model error!");
-            }
+    static {
+        try {
+            InputStream in = TimeNormalizer.class.getResourceAsStream("/TimeExp.m");
+            ObjectInputStream objectInputStream = new ObjectInputStream(
+                    new BufferedInputStream(new GZIPInputStream(in)));
+            patterns = readModel(objectInputStream);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
+    }
+
+    public TimeNormalizer() {
+    }
+
+    public TimeNormalizer(Pattern er) {
+        patterns = er;
     }
 
     /**
@@ -275,7 +279,7 @@ public class TimeNormalizer implements Serializable {
         return readModel(in);
     }
 
-    private Pattern readModel(ObjectInputStream in) throws Exception {
+    private static Pattern readModel(ObjectInputStream in) throws Exception {
         Pattern p = (Pattern) in.readObject();
         LOGGER.debug("model pattern:{}", p.pattern());
         return Pattern.compile(p.pattern());

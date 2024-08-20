@@ -1,8 +1,8 @@
 /**
  * Copyright (c) 2016 21CN.COM . All rights reserved.<br>
- *
+ * <p>
  * Description: calendarCommon<br>
- * 
+ * <p>
  * Modified log:<br>
  * ------------------------------------------------------<br>
  * Ver.		Date		Author			Description<br>
@@ -11,362 +11,426 @@
  */
 package com.time.util;
 
+import com.time.nlp.CusTimeModel;
+import com.time.nlp.CusTimeNormalizer;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.*;
 
 /**
  * <p>
  * 日期工具类（来自公司公共项目）
  * <p>
+ *
  * @author <a href="mailto:kexm@corp.21cn.com">kexm</a>
- * @version 
  * @since 2016年4月25日
- * 
  */
 public class CommonDateUtil {
-	private static String defaultDatePattern = "yyyy-MM-dd";
-	public static final long ONE_MINUTE_MILLISECOND = 60000L;
-	public static final long ONE_HOUR_MILLISECOND = 3600000L;
-	public static final long ONE_DAY_MILLISECOND = 86400000L;
-	public static final long ONE_WEEK_MILLISECOND = 604800000L;
-	public static final long ONE_MONTH_MILLISECOND = 2592000000L;
-	public static final long ONE_YEAR_MILLISECOND = 31536000000L;
-	private static final String[] SMART_DATE_FORMATS = { "yyyy-MM-dd HH:mm:ss", "yyyy.MM.dd HH:mm:ss",
-			"yyyy-MM-dd HH:mm", "yyyy.MM.dd HH:mm", "yyyyMMddHHmmss", "yyyyMMddHHmm", "yyyy-MM-dd", "yyyy.MM.dd",
-			"yyyyMMdd" };
+    private static String defaultDatePattern = "yyyy-MM-dd";
+    public static final long ONE_MINUTE_MILLISECOND = 60000L;
+    public static final long ONE_HOUR_MILLISECOND = 3600000L;
+    public static final long ONE_DAY_MILLISECOND = 86400000L;
+    public static final long ONE_WEEK_MILLISECOND = 604800000L;
+    public static final long ONE_MONTH_MILLISECOND = 2592000000L;
+    public static final long ONE_YEAR_MILLISECOND = 31536000000L;
+    private static final String[] SMART_DATE_FORMATS = {"yyyy-MM-dd HH:mm:ss", "yyyy.MM.dd HH:mm:ss",
+            "yyyy-MM-dd HH:mm", "yyyy.MM.dd HH:mm", "yyyyMMddHHmmss", "yyyyMMddHHmm", "yyyy-MM-dd", "yyyy.MM.dd",
+            "yyyyMMdd"};
 
-	public static final String[] zodiacArray = { "猴", "鸡", "狗", "猪", "鼠", "牛", "虎", "兔", "龙", "蛇", "马", "羊" };
+    public static final String[] zodiacArray = {"猴", "鸡", "狗", "猪", "鼠", "牛", "虎", "兔", "龙", "蛇", "马", "羊"};
 
-	public static final String[] constellationArray = { "水瓶座", "双鱼座", "牡羊座", "金牛座", "双子座", "巨蟹座", "狮子座", "处女座", "天秤座",
-			"天蝎座", "射手座", "魔羯座" };
+    public static final String[] constellationArray = {"水瓶座", "双鱼座", "牡羊座", "金牛座", "双子座", "巨蟹座", "狮子座", "处女座", "天秤座",
+            "天蝎座", "射手座", "魔羯座"};
 
-	private static final int[] constellationEdgeDay = { 20, 19, 21, 21, 21, 22, 23, 23, 23, 23, 22, 22 };
+    private static final int[] constellationEdgeDay = {20, 19, 21, 21, 21, 22, 23, 23, 23, 23, 22, 22};
 
-	public static String getDatePattern() {
-		return defaultDatePattern;
-	}
-	
-	public static int getYear(Date date) {
-		return getCalendar(date).get(1);
-	}
+    public static String getDatePattern() {
+        return defaultDatePattern;
+    }
 
-	public static int getMonth(Date date) {
-		return getCalendar(date).get(2);
-	}
+    public static int getYear(Date date) {
+        return getCalendar(date).get(1);
+    }
 
-	public static int getDay(Date date) {
-		return getCalendar(date).get(5);
-	}
+    public static int getMonth(Date date) {
+        return getCalendar(date).get(2);
+    }
 
-	public static int getWeek(Date date) {
-		return getCalendar(date).get(7);
-	}
+    public static int getDay(Date date) {
+        return getCalendar(date).get(5);
+    }
 
-	public static int getWeekOfFirstDayOfMonth(Date date) {
-		return getWeek(getFirstDayOfMonth(date));
-	}
+    public static int getWeek(Date date) {
+        return getCalendar(date).get(7);
+    }
 
-	public static int getWeekOfLastDayOfMonth(Date date) {
-		return getWeek(getLastDayOfMonth(date));
-	}
+    public static int getWeekOfFirstDayOfMonth(Date date) {
+        return getWeek(getFirstDayOfMonth(date));
+    }
 
-	public static final Date parseDate(String strDate, String format) {
-		SimpleDateFormat df = new SimpleDateFormat(format);
-		try {
-			return df.parse(strDate);
-		} catch (ParseException pe) {
-		}
-		return null;
-	}
+    public static int getWeekOfLastDayOfMonth(Date date) {
+        return getWeek(getLastDayOfMonth(date));
+    }
 
-	public static final Date parseDateSmart(String strDate) {
-		if (StringUtil.isEmpty(strDate))
-			return null;
-		for (String fmt : SMART_DATE_FORMATS) {
-			Date d = parseDate(strDate, fmt);
-			if (d != null) {
-				String s = formatDate(d, fmt);
-				if (strDate.equals(s))
-					return d;
-			}
-		}
-		try {
-			long time = Long.parseLong(strDate);
-			return new Date(time);
-		} catch (Exception e) {
-		}
-		return null;
-	}
+    public static final Date parseDate(String strDate, String format) {
+        SimpleDateFormat df = new SimpleDateFormat(format);
+        try {
+            return df.parse(strDate);
+        } catch (ParseException pe) {
+        }
+        return null;
+    }
 
-	public static Date parseDate(String strDate) {
-		return parseDate(strDate, getDatePattern());
-	}
+    public static final Date parseDateSmart(String strDate) {
+        if (StringUtil.isEmpty(strDate))
+            return null;
+        for (String fmt : SMART_DATE_FORMATS) {
+            Date d = parseDate(strDate, fmt);
+            if (d != null) {
+                String s = formatDate(d, fmt);
+                if (strDate.equals(s))
+                    return d;
+            }
+        }
+        try {
+            long time = Long.parseLong(strDate);
+            return new Date(time);
+        } catch (Exception e) {
+        }
+        return null;
+    }
 
-	public static boolean isLeapYear(int year) {
-		if (year / 4 * 4 != year) {
-			return false;
-		}
-		if (year / 100 * 100 != year) {
-			return true;
-		}
+    public static Date parseDate(String strDate) {
+        return parseDate(strDate, getDatePattern());
+    }
 
-		return (year / 400 * 400 == year);
-	}
+    public static boolean isLeapYear(int year) {
+        if (year / 4 * 4 != year) {
+            return false;
+        }
+        if (year / 100 * 100 != year) {
+            return true;
+        }
 
-	public static boolean isWeekend(Date date) {
-		Calendar c = Calendar.getInstance();
-		if (date != null)
-			c.setTime(date);
-		int weekDay = c.get(7);
-		return ((weekDay == 1) || (weekDay == 7));
-	}
+        return (year / 400 * 400 == year);
+    }
 
-	public static boolean isWeekend() {
-		return isWeekend(null);
-	}
+    public static boolean isWeekend(Date date) {
+        Calendar c = Calendar.getInstance();
+        if (date != null)
+            c.setTime(date);
+        int weekDay = c.get(7);
+        return ((weekDay == 1) || (weekDay == 7));
+    }
 
-	public static String getCurrentTime() {
-		return formatDate(new Date());
-	}
+    public static boolean isWeekend() {
+        return isWeekend(null);
+    }
 
-	public static String getCurrentTime(String format) {
-		return formatDate(new Date(), format);
-	}
+    public static String getCurrentTime() {
+        return formatDate(new Date());
+    }
 
-	public static String formatDate(Date date, String format) {
-		if (date == null)
-			date = new Date();
-		if (format == null)
-			format = getDatePattern();
-		SimpleDateFormat formatter = new SimpleDateFormat(format);
-		return formatter.format(date);
-	}
+    public static String getCurrentTime(String format) {
+        return formatDate(new Date(), format);
+    }
 
-	public static String formatDate(Date date) {
-		long offset = System.currentTimeMillis() - date.getTime();
-		String pos = "前";
-		if (offset < 0L) {
-			pos = "后";
-			offset = -offset;
-		}
-		if (offset >= 31536000000L) {
-			return formatDate(date, getDatePattern());
-		}
-		if (offset >= 5184000000L) {
-			return ((offset + 1296000000L) / 2592000000L) + "个月" + pos;
-		}
-		if (offset > 604800000L) {
-			return ((offset + 302400000L) / 604800000L) + "周" + pos;
-		}
-		if (offset > 86400000L) {
-			return ((offset + 43200000L) / 86400000L) + "天" + pos;
-		}
-		if (offset > 3600000L) {
-			return ((offset + 1800000L) / 3600000L) + "小时" + pos;
-		}
-		if (offset > 60000L) {
-			return ((offset + 30000L) / 60000L) + "分钟" + pos;
-		}
-		return (offset / 1000L) + "秒" + pos;
-	}
+    public static String formatDate(Date date, String format) {
+        if (date == null)
+            date = new Date();
+        if (format == null)
+            format = getDatePattern();
+        SimpleDateFormat formatter = new SimpleDateFormat(format);
+        return formatter.format(date);
+    }
 
-	public static Date getCleanDay(Date day) {
-		return getCleanDay(getCalendar(day));
-	}
+    public static String formatDate(Date date) {
+        long offset = System.currentTimeMillis() - date.getTime();
+        String pos = "前";
+        if (offset < 0L) {
+            pos = "后";
+            offset = -offset;
+        }
+        if (offset >= 31536000000L) {
+            return formatDate(date, getDatePattern());
+        }
+        if (offset >= 5184000000L) {
+            return ((offset + 1296000000L) / 2592000000L) + "个月" + pos;
+        }
+        if (offset > 604800000L) {
+            return ((offset + 302400000L) / 604800000L) + "周" + pos;
+        }
+        if (offset > 86400000L) {
+            return ((offset + 43200000L) / 86400000L) + "天" + pos;
+        }
+        if (offset > 3600000L) {
+            return ((offset + 1800000L) / 3600000L) + "小时" + pos;
+        }
+        if (offset > 60000L) {
+            return ((offset + 30000L) / 60000L) + "分钟" + pos;
+        }
+        return (offset / 1000L) + "秒" + pos;
+    }
 
-	public static Calendar getCalendar(Date day) {
-		Calendar c = Calendar.getInstance();
-		if (day != null)
-			c.setTime(day);
-		return c;
-	}
+    public static Date getCleanDay(Date day) {
+        return getCleanDay(getCalendar(day));
+    }
 
-	private static Date getCleanDay(Calendar c) {
-		c.set(11, 0);
-		c.clear(12);
-		c.clear(13);
-		c.clear(14);
-		return c.getTime();
-	}
+    public static Calendar getCalendar(Date day) {
+        Calendar c = Calendar.getInstance();
+        if (day != null)
+            c.setTime(day);
+        return c;
+    }
 
-	public static Date makeDate(int year, int month, int day) {
-		Calendar c = Calendar.getInstance();
-		getCleanDay(c);
-		c.set(1, year);
-		c.set(2, month - 1);
-		c.set(5, day);
-		return c.getTime();
-	}
+    private static Date getCleanDay(Calendar c) {
+        c.set(11, 0);
+        c.clear(12);
+        c.clear(13);
+        c.clear(14);
+        return c.getTime();
+    }
 
-	private static Date getFirstCleanDay(int datePart, Date date) {
-		Calendar c = Calendar.getInstance();
-		if (date != null)
-			c.setTime(date);
-		c.set(datePart, 1);
-		return getCleanDay(c);
-	}
+    public static Date makeDate(int year, int month, int day) {
+        Calendar c = Calendar.getInstance();
+        getCleanDay(c);
+        c.set(1, year);
+        c.set(2, month - 1);
+        c.set(5, day);
+        return c.getTime();
+    }
 
-	private static Date add(int datePart, int detal, Date date) {
-		Calendar c = Calendar.getInstance();
-		if (date != null)
-			c.setTime(date);
-		c.add(datePart, detal);
-		return c.getTime();
-	}
+    private static Date getFirstCleanDay(int datePart, Date date) {
+        Calendar c = Calendar.getInstance();
+        if (date != null)
+            c.setTime(date);
+        c.set(datePart, 1);
+        return getCleanDay(c);
+    }
 
-	public static Date getFirstDayOfWeek(Date date) {
-		return getFirstCleanDay(7, date);
-	}
+    private static Date add(int datePart, int detal, Date date) {
+        Calendar c = Calendar.getInstance();
+        if (date != null)
+            c.setTime(date);
+        c.add(datePart, detal);
+        return c.getTime();
+    }
 
-	public static Date getFirstDayOfWeek() {
-		return getFirstDayOfWeek(null);
-	}
+    public static Date getFirstDayOfWeek(Date date) {
+        return getFirstCleanDay(7, date);
+    }
 
-	public static Date getFirstDayOfMonth(Date date) {
-		return getFirstCleanDay(5, date);
-	}
+    public static Date getFirstDayOfWeek() {
+        return getFirstDayOfWeek(null);
+    }
 
-	public static Date getFirstDayOfMonth() {
-		return getFirstDayOfMonth(null);
-	}
+    public static Date getFirstDayOfMonth(Date date) {
+        return getFirstCleanDay(5, date);
+    }
 
-	public static Date getLastDayOfMonth() {
-		return getLastDayOfMonth(null);
-	}
+    public static Date getFirstDayOfMonth() {
+        return getFirstDayOfMonth(null);
+    }
 
-	public static Date getLastDayOfMonth(Date date) {
-		Calendar c = getCalendar(getFirstDayOfMonth(date));
-		c.add(2, 1);
-		c.add(5, -1);
-		return getCleanDay(c);
-	}
+    public static Date getLastDayOfMonth() {
+        return getLastDayOfMonth(null);
+    }
 
-	public static Date getFirstDayOfSeason(Date date) {
-		Date d = getFirstDayOfMonth(date);
-		int delta = getMonth(d) % 3;
-		if (delta > 0)
-			d = getDateAfterMonths(d, -delta);
-		return d;
-	}
+    public static Date getLastDayOfMonth(Date date) {
+        Calendar c = getCalendar(getFirstDayOfMonth(date));
+        c.add(2, 1);
+        c.add(5, -1);
+        return getCleanDay(c);
+    }
 
-	public static Date getFirstDayOfSeason() {
-		return getFirstDayOfMonth(null);
-	}
+    public static Date getFirstDayOfSeason(Date date) {
+        Date d = getFirstDayOfMonth(date);
+        int delta = getMonth(d) % 3;
+        if (delta > 0)
+            d = getDateAfterMonths(d, -delta);
+        return d;
+    }
 
-	public static Date getFirstDayOfYear(Date date) {
-		return makeDate(getYear(date), 1, 1);
-	}
+    public static Date getFirstDayOfSeason() {
+        return getFirstDayOfMonth(null);
+    }
 
-	public static Date getFirstDayOfYear() {
-		return getFirstDayOfYear(new Date());
-	}
+    public static Date getFirstDayOfYear(Date date) {
+        return makeDate(getYear(date), 1, 1);
+    }
 
-	public static Date getDateAfterWeeks(Date start, int weeks) {
-		return getDateAfterMs(start, weeks * 604800000L);
-	}
+    public static Date getFirstDayOfYear() {
+        return getFirstDayOfYear(new Date());
+    }
 
-	public static Date getDateAfterMonths(Date start, int months) {
-		return add(2, months, start);
-	}
+    public static Date getDateAfterWeeks(Date start, int weeks) {
+        return getDateAfterMs(start, weeks * 604800000L);
+    }
 
-	public static Date getDateAfterYears(Date start, int years) {
-		return add(1, years, start);
-	}
+    public static Date getDateAfterMonths(Date start, int months) {
+        return add(2, months, start);
+    }
 
-	public static Date getDateAfterDays(Date start, int days) {
-		return getDateAfterMs(start, days * 86400000L);
-	}
+    public static Date getDateAfterYears(Date start, int years) {
+        return add(1, years, start);
+    }
 
-	public static Date getDateAfterMs(Date start, long ms) {
-		return new Date(start.getTime() + ms);
-	}
+    public static Date getDateAfterDays(Date start, int days) {
+        return getDateAfterMs(start, days * 86400000L);
+    }
 
-	public static long getPeriodNum(Date start, Date end, long msPeriod) {
-		return (getIntervalMs(start, end) / msPeriod);
-	}
+    public static Date getDateAfterMs(Date start, long ms) {
+        return new Date(start.getTime() + ms);
+    }
 
-	public static long getIntervalMs(Date start, Date end) {
-		return (end.getTime() - start.getTime());
-	}
+    public static long getPeriodNum(Date start, Date end, long msPeriod) {
+        return (getIntervalMs(start, end) / msPeriod);
+    }
 
-	public static int getIntervalDays(Date start, Date end) {
-		return (int) getPeriodNum(start, end, 86400000L);
-	}
+    public static long getIntervalMs(Date start, Date end) {
+        return (end.getTime() - start.getTime());
+    }
 
-	public static int getIntervalWeeks(Date start, Date end) {
-		return (int) getPeriodNum(start, end, 604800000L);
-	}
+    public static int getIntervalDays(Date start, Date end) {
+        return (int) getPeriodNum(start, end, 86400000L);
+    }
 
-	public static boolean before(Date base, Date date) {
-		return ((date.before(base)) || (date.equals(base)));
-	}
+    public static int getIntervalWeeks(Date start, Date end) {
+        return (int) getPeriodNum(start, end, 604800000L);
+    }
 
-	public static boolean after(Date base, Date date) {
-		return ((date.after(base)) || (date.equals(base)));
-	}
+    public static boolean before(Date base, Date date) {
+        return ((date.before(base)) || (date.equals(base)));
+    }
 
-	public static Date max(Date date1, Date date2) {
-		if (date1.getTime() > date2.getTime()) {
-			return date1;
-		}
-		return date2;
-	}
+    public static boolean after(Date base, Date date) {
+        return ((date.after(base)) || (date.equals(base)));
+    }
 
-	public static Date min(Date date1, Date date2) {
-		if (date1.getTime() < date2.getTime()) {
-			return date1;
-		}
-		return date2;
-	}
+    public static Date max(Date date1, Date date2) {
+        if (date1.getTime() > date2.getTime()) {
+            return date1;
+        }
+        return date2;
+    }
 
-	public static boolean inPeriod(Date start, Date end, Date date) {
-		return ((((end.after(date)) || (end.equals(date)))) && (((start.before(date)) || (start.equals(date)))));
-	}
+    public static Date min(Date date1, Date date2) {
+        if (date1.getTime() < date2.getTime()) {
+            return date1;
+        }
+        return date2;
+    }
 
-	public static String date2Zodica(Date time) {
-		Calendar c = Calendar.getInstance();
-		c.setTime(time);
-		return year2Zodica(c.get(1));
-	}
+    public static boolean inPeriod(Date start, Date end, Date date) {
+        return ((((end.after(date)) || (end.equals(date)))) && (((start.before(date)) || (start.equals(date)))));
+    }
 
-	public static String year2Zodica(int year) {
-		return zodiacArray[(year % 12)];
-	}
+    public static String date2Zodica(Date time) {
+        Calendar c = Calendar.getInstance();
+        c.setTime(time);
+        return year2Zodica(c.get(1));
+    }
 
-	public static String date2Constellation(Date time) {
-		Calendar c = Calendar.getInstance();
-		c.setTime(time);
-		int month = c.get(2);
-		int day = c.get(5);
-		if (day < constellationEdgeDay[month]) {
-			--month;
-		}
-		if (month >= 0) {
-			return constellationArray[month];
-		}
+    public static String year2Zodica(int year) {
+        return zodiacArray[(year % 12)];
+    }
 
-		return constellationArray[11];
-	}
+    public static String date2Constellation(Date time) {
+        Calendar c = Calendar.getInstance();
+        c.setTime(time);
+        int month = c.get(2);
+        int day = c.get(5);
+        if (day < constellationEdgeDay[month]) {
+            --month;
+        }
+        if (month >= 0) {
+            return constellationArray[month];
+        }
 
-	public static void main(String[] args) {
-		System.out.println(year2Zodica(1973));
-		System.out.println(date2Zodica(new Date()));
-		System.out.println(date2Constellation(makeDate(1973, 5, 12)));
-		System.out.println(Calendar.getInstance() == Calendar.getInstance());
-		System.out.println(getCleanDay(new Date()));
-		System.out.println(new Date());
-		Calendar c = Calendar.getInstance();
-		c.set(5, 1);
-		System.out.println(getFirstDayOfMonth());
-		System.out.println(getLastDayOfMonth(makeDate(1996, 2, 1)));
+        return constellationArray[11];
+    }
 
-		System.out.println(formatDate(makeDate(2009, 5, 1)));
-		System.out.println(formatDate(makeDate(2010, 5, 1)));
-		System.out.println(formatDate(makeDate(2010, 12, 21)));
-		System.out.println(before(makeDate(2009, 5, 1), new Date()));
-		System.out.println(after(makeDate(2009, 5, 1), new Date()));
-		System.out.println(inPeriod(makeDate(2009, 11, 24), makeDate(2009, 11, 30), makeDate(2009, 11, 25)));
-	}
+    public static void main(String[] args) throws URISyntaxException, InterruptedException, IOException, ClassNotFoundException {
+        List<String> timeInfoList = new ArrayList<>(Arrays.asList(
+                "现在",
+                "这几天", "未来几天", "一周", "最近几天", "这周", "本周", "未来一周",
+                "明天", "晚上", "下午", "昨晚", "日照", "周末", "一周内",
+                "实时", "近几天", "近一周", "晚上", "中山", "北京", "芜湖",
+                "一个星期", "这一周", "有雨吗", "昨天多少度", "下雨吗", "马鞍山",
+                "最近一周", "南宁", "接下来", "这一周", "这个星期", "睢宁县",
+                "烟台", "佛山", "成都", "中山", "大理", "一个星期", "未来几天",
+                "深圳", "明日", "近期", "近一周", "这周", "近一周", "近期",
+                "播报", "后面", "下午", "这一周", "查一下", "哦今天", "最近几天",
+                "上海", "都江堰", "重庆", "南京", "这一周", "最近这几天",
+                "马鞍山", "本周", "下午", "过几天", "这个星期", "下雨吗",
+                "查看一下", "宁波", "安吉", "芜湖", "六安", "合肥", "晚上",
+                "今夜", "实时", "上午", "这个礼拜", "明天", "看一下", "张家港",
+                "安吉", "成都", "播放", "台风", "广州", "深圳", "杭州", "安吉",
+                "龙湖", "同庐", "江西",
+                "实时"
+        ));
+
+//        List<String> timeInfoList = new ArrayList<>(Arrays.asList("一天"));
+        for (String time : timeInfoList) {
+            CusTimeModel cusTimeModel2 = CusTimeNormalizer.getINSTANCE().rangeTime("", time, "");
+            System.out.println("time: " + time + "   " + "timeStart: " + cusTimeModel2.getTime() + ", " + "timeEnd: " + cusTimeModel2.getTimeEnd());
+            if (StringUtils.isBlank(cusTimeModel2.getTime()) && StringUtils.isBlank(cusTimeModel2.getTimeEnd())) {
+//                System.out.println("time: " + time);
+            }
+        }
+
+//        URL url = CommonDateUtil.class.getResource("/TimeExp.m");
+//        System.out.println(url.toURI().toString());
+//        List<String> times = Arrays.asList("昨天", "今天", "前天", "明天", "后天", "三天前", "三天后", "前三天", "后三天", "三天内");
+//        List<String> times = Arrays.asList("上周", "上上周", "下周", "下下周", "周五", "一周内", "前两周", "后三周");
+//        List<String> times = Arrays.asList("一月","12月", "上个月", "下个月", "上上个月", "一个月内", "前两个月", "后三个月");
+//        List<String> times = Arrays.asList("1天后","12月", "上个月", "下个月", "上上个月", "一个月内", "前两个月", "后三个月");
+
+//        List<TimerModel> list = CutTimeNormalizer.getINSTANCE().timerConvert("24小时");
+////        System.out.println(list);
+//        CusTimeModel cusTimeModel2 = CusTimeNormalizer.getINSTANCE().singleTime("提醒我明天早上带伞", "晚上6点32", "");
+//        System.out.println(cusTimeModel2);
+//        CusTimeModel cusTimeModel3 = CusTimeNormalizer.getINSTANCE().rangeTime("搜索前一个工作日的笔记", "下午18:30");
+//        System.out.println(cusTimeModel3);
+
+//        List<String> times = Arrays.asList("后天下午","12月", "上个月", "下个月", "上上个月", "一个月内", "前两个月", "后三个月");
+//        for (String time : times) {
+//            CusTimeModel cusTimeModel = CutTimeUtil.getINSTANCE().rangeTime(time + "的天气", time);
+//            System.out.println(time + ": " + cusTimeModel);
+//        }
+
+
+//        TimeNormalizer normalizer = new TimeNormalizer();
+//        normalizer.setPreferFuture(true);
+//        TimeUnit[] units1 = normalizer.parse("下周");
+//        for (String time : times) {
+//            TimeUnit[] units = normalizer.parse(time);
+//            for (TimeUnit unit : units) {
+//                System.out.println(time + ": " + DateUtil.formatDateDefault(unit.getTime()));
+//            }
+//        }
+
+
+//		System.out.println(year2Zodica(1973));
+//		System.out.println(date2Zodica(new Date()));
+//		System.out.println(date2Constellation(makeDate(1973, 5, 12)));
+//		System.out.println(Calendar.getInstance() == Calendar.getInstance());
+//		System.out.println(getCleanDay(new Date()));
+//		System.out.println(new Date());
+//		Calendar c = Calendar.getInstance();
+//		c.set(5, 1);
+//		System.out.println(getFirstDayOfMonth());
+//		System.out.println(getLastDayOfMonth(makeDate(1996, 2, 1)));
+//
+//		System.out.println(formatDate(makeDate(2009, 5, 1)));
+//		System.out.println(formatDate(makeDate(2010, 5, 1)));
+//		System.out.println(formatDate(makeDate(2010, 12, 21)));
+//		System.out.println(before(makeDate(2009, 5, 1), new Date()));
+//		System.out.println(after(makeDate(2009, 5, 1), new Date()));
+//		System.out.println(inPeriod(makeDate(2009, 11, 24), makeDate(2009, 11, 30), makeDate(2009, 11, 25)));
+    }
 }
