@@ -99,12 +99,39 @@ public enum CusTimeNormalizer {
 
     private static final Pattern RANGE_TIME_DELAY_PATTERN = Pattern.compile("^之?(上|前|后|下)(.+)(年|月|周|日|天|小时|分钟|个月).*");
 
+    private CusTimeModel postRangeTime(CusTimeModel cusTimeModel, String time) {
+        if (StringUtils.isBlank(cusTimeModel.getTime()) && StringUtils.isBlank(cusTimeModel.getTimeEnd())) {
+            //扩展 特殊case等
+            CusTimeModel exModel = ExtendTimeNormalizeUtil.getInstance().rangeTime(time);
+            exModel.setOriginTime(cusTimeModel.getOriginTime());
+            exModel.setRepeat(cusTimeModel.getRepeat());
+            return exModel;
+        }
+        return cusTimeModel;
+    }
 
     public CusTimeModel rangeTime(String query, String time, String clockSlotsRepeat) {
+        CusTimeModel cusTimeModel = rangeTimeProcess(query, time, clockSlotsRepeat);
+        return postRangeTime(cusTimeModel, time);
+    }
+
+    public CusTimeModel rangeTime(String query, String time) {
+        CusTimeModel cusTimeModel = rangeTimeProcess(query, time);
+        return postRangeTime(cusTimeModel, time);
+    }
+
+
+    public CusTimeModel rangeTimeProcess(String query, String time, String clockSlotsRepeat) {
         clockSlotsRepeat = extractRepeat(query, clockSlotsRepeat);
         CusTimeModel repeatModel = processRepeat(clockSlotsRepeat);
 
-        CusTimeModel cusTimeModel = rangeTime(query, time);
+        CusTimeModel cusTimeModel = rangeTimeProcess(query, time);
+
+        //扩展 特殊case等
+        if (StringUtils.isBlank(cusTimeModel.getTime()) && StringUtils.isBlank(cusTimeModel.getTimeEnd())) {
+            cusTimeModel = ExtendTimeNormalizeUtil.getInstance().rangeTime(time);
+        }
+
         cusTimeModel.setRepeat(repeatModel.getRepeat());
         return cusTimeModel;
     }
@@ -114,7 +141,7 @@ public enum CusTimeNormalizer {
      * @param time
      * @return
      */
-    public CusTimeModel rangeTime(String query, String time) {
+    public CusTimeModel rangeTimeProcess(String query, String time) {
         time = replaceCapitalNumberWithNumber(time);
         time = timeReplace(time);
 
